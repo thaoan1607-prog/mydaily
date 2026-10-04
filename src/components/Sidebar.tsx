@@ -19,6 +19,7 @@ import {
   CheckCircle2,
   Sparkles,
   ArrowRightLeft,
+  Layers,
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -68,25 +69,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const { themeConfig } = useTheme();
   const { currentUser, isGuest, isAdmin, logout, quickLogin } = useAuth();
   const [showRoleSwitcher, setShowRoleSwitcher] = useState(false);
+  const [showUtilities, setShowUtilities] = useState(false);
 
   // Counts
   const todayTasks = tasks.filter((t) => !t.isSomeday);
   const pendingTodayCount = todayTasks.filter((t) => !t.completed).length;
   const remindersCount = tasks.filter((t) => t.reminderTime && t.reminderTime.trim().length > 0 && !t.completed).length;
 
-  // Main navigation items as strictly requested:
-  // 🏠 Trang chủ
-  // 📝 Công việc
-  // 📅 Lịch
-  // 💡 Ý tưởng
-  // 🤖 Trợ lý AI
-  // 🔔 Nhắc nhở
-  // 📊 Thống kê
-  // 🎯 Tập trung
-  // ⚙️ Cài đặt
-  // 👤 Tài khoản
-  // 🛠️ Quản trị Admin (nếu là Admin)
-  const navItems = [
+  // Streamlined Main Navigation Items (Requirements: Trang chủ, Công việc, Lịch, Ý tưởng, Thống kê, Cài đặt)
+  const mainNavItems = [
     {
       id: 'home' as ActiveTab,
       label: 'Trang chủ',
@@ -118,15 +109,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
       badgeColor: 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300',
     },
     {
-      id: 'assistant_action' as const,
-      label: 'Trợ lý AI',
-      emoji: '🤖',
-      icon: <Bot className="w-4 h-4 text-purple-500" />,
-      isAction: true,
-      onClick: () => {
-        onOpenAssistant();
-        onCloseMobile();
-      },
+      id: 'statistics' as ActiveTab,
+      label: 'Thống kê',
+      emoji: '📊',
+      icon: <BarChart3 className="w-4 h-4 text-emerald-500" />,
+    },
+    {
+      id: 'settings' as ActiveTab,
+      label: 'Cài đặt',
+      emoji: '⚙️',
+      icon: <Settings className="w-4 h-4 text-slate-500" />,
+    },
+  ];
+
+  // Secondary Utilities (Focus, Reminders, Account) - easily accessible without cluttering
+  const utilityItems = [
+    {
+      id: 'focus' as ActiveTab,
+      label: 'Tập trung Pomodoro',
+      emoji: '🎯',
+      icon: <Target className="w-4 h-4 text-violet-500" />,
     },
     {
       id: 'reminders' as ActiveTab,
@@ -137,44 +139,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
       badgeColor: 'bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300',
     },
     {
-      id: 'statistics' as ActiveTab,
-      label: 'Thống kê',
-      emoji: '📊',
-      icon: <BarChart3 className="w-4 h-4 text-emerald-500" />,
-    },
-    {
-      id: 'focus' as ActiveTab,
-      label: 'Tập trung',
-      emoji: '🎯',
-      icon: <Target className="w-4 h-4 text-violet-500" />,
-    },
-    {
-      id: 'settings' as ActiveTab,
-      label: 'Cài đặt',
-      emoji: '⚙️',
-      icon: <Settings className="w-4 h-4 text-slate-500" />,
-    },
-    {
       id: 'account' as ActiveTab,
-      label: 'Tài khoản',
+      label: 'Tài khoản cá nhân',
       emoji: '👤',
       icon: <UserIcon className="w-4 h-4 text-blue-500" />,
     },
   ];
 
-  // Admin exclusive item
   const adminItem = {
     id: 'admin' as ActiveTab,
     label: 'Quản trị Admin',
     emoji: '🛠️',
     icon: <ShieldAlert className="w-4 h-4 text-rose-600 animate-pulse" />,
-    badgeColor: 'bg-rose-500 text-white',
   };
 
   const getRoleLabel = () => {
-    if (isAdmin) return 'Quản trị viên (Admin)';
-    if (isGuest) return 'Khách trải nghiệm';
-    return 'Người dùng';
+    if (isAdmin) return 'Admin';
+    if (isGuest) return 'Khách';
+    return 'Thành viên';
   };
 
   const getRoleBadgeStyle = () => {
@@ -204,8 +186,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
             {!isCollapsed && (
               <div className="truncate">
-                <span className="font-extrabold text-sm tracking-tight text-slate-800 dark:text-slate-100 block leading-tight">
-                  Việc cần làm hôm nay
+                <span className="font-black text-base tracking-tight text-slate-900 dark:text-slate-100 block leading-tight">
+                  My Daily
                 </span>
                 <span className="text-[10px] font-semibold text-pink-600 dark:text-pink-400 uppercase tracking-wider flex items-center gap-1">
                   <span>{themeConfig.emoji}</span>
@@ -226,80 +208,124 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
         </div>
 
-        {/* Navigation List */}
+        {/* Unified AI Assistant Fast Action */}
+        <div className="mb-3">
+          <button
+            onClick={() => {
+              onOpenAssistant();
+              onCloseMobile();
+            }}
+            type="button"
+            title="Mở Trợ lý AI My Daily"
+            className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-2xl text-xs font-bold text-white shadow-xs transition-all active:scale-95 bg-gradient-to-r ${themeConfig.gradientClass} ${
+              isCollapsed ? 'justify-center px-0' : ''
+            }`}
+          >
+            <Sparkles className="w-4 h-4 text-amber-200 shrink-0 animate-pulse" />
+            {!isCollapsed && (
+              <div className="flex-1 flex items-center justify-between text-left">
+                <span className="truncate">Trợ lý AI My Daily</span>
+                <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded-full bg-white/20 text-white">
+                  Chatbot
+                </span>
+              </div>
+            )}
+          </button>
+        </div>
+
+        {/* Main Streamlined Navigation List */}
         <div className="space-y-1">
           {!isCollapsed && (
             <div className="px-2.5 py-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-              Menu điều hướng
+              Menu chính
             </div>
           )}
 
-          {navItems.map((item) => {
-            if ('isAction' in item && item.isAction) {
-              return (
-                <button
-                  key="ai_action"
-                  onClick={item.onClick}
-                  type="button"
-                  title="Mở Trợ lý AI"
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 transition-all ${
-                    isCollapsed ? 'justify-center px-0' : ''
-                  }`}
-                >
-                  <span className="text-base select-none shrink-0">{item.emoji}</span>
-                  {!isCollapsed && (
-                    <div className="flex-1 flex items-center justify-between text-left">
-                      <span className="truncate">{item.label}</span>
-                      <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300">
-                        AI
-                      </span>
-                    </div>
-                  )}
-                </button>
-              );
-            }
-
+          {mainNavItems.map((item) => {
             const isActive = activeTab === item.id;
             return (
               <button
                 key={item.id}
                 onClick={() => {
-                  onSelectTab(item.id as ActiveTab);
+                  onSelectTab(item.id);
                   onCloseMobile();
                 }}
                 type="button"
                 title={item.label}
                 className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
                   isActive
-                    ? 'bg-pink-50 dark:bg-pink-950/40 text-pink-700 dark:text-pink-300 shadow-2xs font-bold border border-pink-200 dark:border-pink-800/50'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100'
+                    ? 'bg-pink-50 dark:bg-pink-950/40 text-pink-700 dark:text-pink-300 font-bold shadow-2xs border border-pink-200/60 dark:border-pink-800/60'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-slate-100'
                 } ${isCollapsed ? 'justify-center px-0' : ''}`}
               >
                 <span className="text-base select-none shrink-0">{item.emoji}</span>
                 {!isCollapsed && (
-                  <>
-                    <span className="truncate flex-1 text-left">{item.label}</span>
-                    {typeof item.count === 'number' && (
-                      <span
-                        className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${item.badgeColor || 'bg-slate-100 text-slate-600'}`}
-                      >
+                  <div className="flex-1 flex items-center justify-between text-left min-w-0">
+                    <span className="truncate">{item.label}</span>
+                    {item.count !== undefined && (
+                      <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full shrink-0 ${item.badgeColor}`}>
                         {item.count}
                       </span>
                     )}
-                  </>
+                  </div>
                 )}
               </button>
             );
           })}
+        </div>
 
-          {/* Admin link (Only if isAdmin) */}
+        {/* Secondary Utilities / More section (Pomodoro, Reminders, Account) */}
+        <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+          {!isCollapsed && (
+            <button
+              onClick={() => setShowUtilities(!showUtilities)}
+              type="button"
+              className="w-full flex items-center justify-between px-2.5 py-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider hover:text-slate-700"
+            >
+              <span>Tiện ích khác</span>
+              <span className="text-xs">{showUtilities ? '−' : '+'}</span>
+            </button>
+          )}
+
+          {(showUtilities || isCollapsed || ['focus', 'reminders', 'account'].includes(activeTab)) && (
+            <div className="space-y-1 mt-1">
+              {utilityItems.map((item) => {
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      onSelectTab(item.id);
+                      onCloseMobile();
+                    }}
+                    type="button"
+                    title={item.label}
+                    className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                      isActive
+                        ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-bold border border-slate-300 dark:border-slate-700'
+                        : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-800 dark:hover:text-slate-200'
+                    } ${isCollapsed ? 'justify-center px-0' : ''}`}
+                  >
+                    <span className="text-sm select-none shrink-0">{item.emoji}</span>
+                    {!isCollapsed && (
+                      <div className="flex-1 flex items-center justify-between text-left min-w-0">
+                        <span className="truncate">{item.label}</span>
+                        {item.count !== undefined && (
+                          <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full shrink-0 ${item.badgeColor}`}>
+                            {item.count}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Admin Area (if user is Admin) */}
           {isAdmin && (
-            <div className="pt-2">
-              {!isCollapsed && (
-                <div className="px-2.5 py-1 text-[10px] font-bold text-rose-500 uppercase tracking-wider">
-                  Khu vực Quản trị
-                </div>
-              )}
+            <div className="mt-2 pt-2 border-t border-rose-100 dark:border-rose-950">
               <button
                 onClick={() => {
                   onSelectTab('admin');
@@ -328,44 +354,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* Bottom User Profile & Account Status */}
-      <div className="pt-3 mt-4 border-t border-slate-100 dark:border-slate-800/80 space-y-2.5">
-        {/* Color Palette button */}
-        <button
-          onClick={() => {
-            onOpenThemeModal();
-            onCloseMobile();
-          }}
-          type="button"
-          title="Chỉnh bảng màu Pastel & Giao diện Sáng/Tối"
-          className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors ${
-            isCollapsed ? 'justify-center' : ''
-          }`}
-        >
-          <Palette className="w-4 h-4 text-pink-500 shrink-0" />
-          {!isCollapsed && (
-            <div className="flex-1 flex items-center justify-between text-left">
-              <span className="text-[11px]">Bảng màu Pastel</span>
-              <span className="text-xs">{themeConfig.emoji}</span>
-            </div>
-          )}
-        </button>
-
+      {/* Bottom User Profile & Theme Quick Access */}
+      <div className="pt-3 mt-4 border-t border-slate-100 dark:border-slate-800/80 space-y-2">
         {/* User Card */}
         <div
           className={`rounded-2xl p-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 transition-all ${
             isCollapsed ? 'flex flex-col items-center' : ''
           }`}
         >
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             {currentUser.avatar ? (
               <img
                 src={currentUser.avatar}
                 alt={currentUser.name}
-                className="w-8 h-8 rounded-full object-cover shrink-0 border border-slate-200 shadow-2xs"
+                className="w-7 h-7 rounded-full object-cover shrink-0 border border-slate-200 shadow-2xs"
               />
             ) : (
-              <div className="w-8 h-8 rounded-full bg-pink-100 dark:bg-pink-900/60 text-pink-600 dark:text-pink-300 flex items-center justify-center text-xs font-bold shrink-0">
+              <div className="w-7 h-7 rounded-full bg-pink-100 dark:bg-pink-900/60 text-pink-600 dark:text-pink-300 flex items-center justify-center text-xs font-bold shrink-0">
                 {currentUser.name.charAt(0).toUpperCase()}
               </div>
             )}
@@ -375,9 +380,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <div className="font-bold text-xs text-slate-900 dark:text-slate-100 truncate">
                   {currentUser.name}
                 </div>
-                <div className="flex items-center gap-1.5 mt-0.5">
+                <div className="flex items-center gap-1 mt-0.5">
                   <span
-                    className={`text-[9px] px-1.5 py-0.2 rounded-full font-bold uppercase tracking-wider ${getRoleBadgeStyle()}`}
+                    className={`text-[9px] px-1.5 py-0.1 rounded-full font-bold uppercase tracking-wider ${getRoleBadgeStyle()}`}
                   >
                     {getRoleLabel()}
                   </span>
@@ -386,21 +391,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
             )}
           </div>
 
-          {/* Quick role switch & Logout row */}
+          {/* Quick role switch & Login/Logout row */}
           {!isCollapsed && (
-            <div className="mt-2.5 pt-2 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between gap-1 text-[11px]">
-              {/* Quick switch demo role */}
+            <div className="mt-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between gap-1 text-[11px]">
               <button
                 type="button"
                 onClick={() => setShowRoleSwitcher(!showRoleSwitcher)}
-                title="Chuyển vai trò thử nghiệm (Khách / Người dùng / Admin)"
-                className="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 flex items-center gap-1 px-1.5 py-1 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-700"
+                title="Chuyển đổi vai trò thử nghiệm"
+                className="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 flex items-center gap-1 px-1 py-0.5 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-700"
               >
                 <ArrowRightLeft className="w-3 h-3" />
                 <span>Đổi vai trò</span>
               </button>
 
-              {/* Login or Logout */}
               {isGuest ? (
                 <button
                   type="button"
@@ -423,9 +426,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           )}
 
-          {/* Collapsed icon actions */}
           {isCollapsed && (
-            <div className="mt-2 flex flex-col items-center gap-1">
+            <div className="mt-1 flex flex-col items-center gap-1">
               {isGuest ? (
                 <button
                   type="button"
@@ -449,11 +451,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
         </div>
 
-        {/* Role Switcher Popover for easy demoing */}
+        {/* Role Switcher Popover */}
         {showRoleSwitcher && !isCollapsed && (
           <div className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg space-y-1 text-xs animate-in fade-in duration-150">
             <div className="text-[10px] font-bold text-slate-400 uppercase px-1">
-              Thử nhanh tài khoản:
+              Chuyển vai trò:
             </div>
             <button
               onClick={() => {
@@ -482,7 +484,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               }}
               className="w-full text-left px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 font-bold text-rose-600 dark:text-rose-400 flex items-center justify-between"
             >
-              <span>3. Admin (Quản trị viên)</span>
+              <span>3. Admin</span>
               {isAdmin && <CheckCircle2 className="w-3 h-3 text-rose-500" />}
             </button>
           </div>
@@ -496,7 +498,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Desktop Persistent Sidebar */}
       <aside
         className={`hidden lg:block shrink-0 sticky top-0 h-screen transition-all duration-300 z-20 ${
-          isCollapsed ? 'w-20' : 'w-64'
+          isCollapsed ? 'w-20' : 'w-60'
         }`}
       >
         {sidebarContent}
@@ -506,7 +508,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {isMobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden flex">
           <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs" onClick={onCloseMobile} />
-          <div className="relative w-68 max-w-full h-full z-10 animate-in slide-in-from-left duration-200">
+          <div className="relative w-64 max-w-full h-full z-10 animate-in slide-in-from-left duration-200">
             {sidebarContent}
           </div>
         </div>

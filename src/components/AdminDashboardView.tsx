@@ -116,7 +116,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({ tasks })
               </span>
             </div>
             <p className="text-xs text-indigo-200 mt-0.5">
-              Xin chào {currentUser.name}! Bạn đang quản lý toàn bộ hệ thống Today To-Do.
+              Xin chào {currentUser.name}! Bạn đang quản lý toàn bộ hệ thống My Daily.
             </p>
           </div>
         </div>

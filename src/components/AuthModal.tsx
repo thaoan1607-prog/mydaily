@@ -96,7 +96,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
                 <h3 className="font-extrabold text-lg text-white">
                   {mode === 'login' ? 'Đăng nhập tài khoản' : mode === 'signup' ? 'Tạo tài khoản mới' : 'Khôi phục mật khẩu'}
                 </h3>
-                <p className="text-xs text-white/90">Today To-Do – Quản lý công việc thông minh</p>
+                <p className="text-xs text-white/90">My Daily – Quản lý công việc & thời gian thông minh</p>
               </div>
             </div>
             <button

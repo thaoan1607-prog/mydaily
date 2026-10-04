@@ -465,40 +465,7 @@ export default function App() {
         )}
 
         {/* Main Body */}
-        <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8">
-          {/* Guest Reminder Banner (Requirement 1A) */}
-          {isGuest && (
-            <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-pink-50 via-rose-50 to-amber-50 dark:from-pink-950/40 dark:via-rose-950/30 dark:to-amber-950/30 border border-pink-200/80 dark:border-pink-900/60 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
-              <div className="flex items-center gap-3 text-xs sm:text-sm">
-                <div className="w-8 h-8 rounded-xl bg-pink-100 dark:bg-pink-900/60 text-pink-600 dark:text-pink-300 flex items-center justify-center shrink-0">
-                  <Sparkles className="w-4 h-4" />
-                </div>
-                <div>
-                  <span className="font-bold text-slate-800 dark:text-slate-100">
-                    Bạn đang dùng với vai trò Khách.{' '}
-                  </span>
-                  <span className="text-slate-600 dark:text-slate-300 font-medium">
-                    Đăng ký tài khoản để lưu và đồng bộ dữ liệu của bạn trên mọi thiết bị.
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => handleOpenAuth('signup')}
-                  className="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-pink-500 hover:bg-pink-600 shadow-sm transition-all"
-                >
-                  Đăng ký ngay
-                </button>
-                <button
-                  onClick={() => handleOpenAuth('login')}
-                  className="px-3 py-1.5 rounded-xl text-xs font-bold text-pink-700 dark:text-pink-300 bg-white/80 dark:bg-slate-800 hover:bg-white dark:hover:bg-slate-700 transition-all border border-pink-200 dark:border-pink-800"
-                >
-                  Đăng nhập
-                </button>
-              </div>
-            </div>
-          )}
-
+        <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-5 sm:py-7 space-y-6 sm:space-y-8">
           {/* RENDER VIEW ACCORDING TO activeTab */}
           {activeTab === 'home' && (
             <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-200">
@@ -841,10 +808,10 @@ export default function App() {
       <button
         onClick={() => setIsAssistantOpen(true)}
         className={`fixed bottom-6 right-6 z-40 text-white rounded-full p-3.5 sm:px-5 sm:py-3.5 shadow-xl shadow-pink-500/25 flex items-center gap-2.5 transition-transform active:scale-95 group bg-gradient-to-r ${themeConfig.gradientClass}`}
-        title="Mở Trợ lý hôm nay"
+        title="Mở Trợ lý AI My Daily"
       >
         <Sparkles className="w-5 h-5 text-amber-200 group-hover:rotate-12 transition-transform" />
-        <span className="text-xs sm:text-sm font-bold hidden sm:inline">Trợ lý hôm nay</span>
+        <span className="text-xs sm:text-sm font-bold hidden sm:inline">Trợ lý AI</span>
       </button>
 
       {/* Modals & Drawers */}

@@ -22,12 +22,12 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
       id: 'welcome',
       role: 'assistant',
       content:
-        'Xin chào bạn! Tôi là **Trợ lý hôm nay** 🌟\n\nBạn không cần phải nhớ mọi thứ trong đầu hay viết theo thứ tự. Hãy thoải mái chia sẻ những gì bạn đang nghĩ (ví dụ: *"Tôi phải học tiếng Nhật, làm bài tập, dọn phòng và mua đồ"*), tôi sẽ giúp bạn biến chúng thành danh sách công việc rõ ràng, dễ làm!',
+        'Xin chào bạn! Tôi là **Trợ lý AI My Daily** 🌟\n\nBạn không cần phải nhớ mọi thứ trong đầu hay gõ theo thứ tự phức tạp. Hãy thoải mái chia sẻ những gì bạn đang nghĩ (ví dụ: *"Tôi phải học tiếng Nhật, nộp báo cáo, đi mua đồ và tập thể dục"*), tôi sẽ giúp bạn tự động phân loại, ước lượng thời gian và đưa vào kế hoạch hôm nay!',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       suggestedActions: [
         'Hôm nay tôi phải làm rất nhiều việc',
         'Tôi cần học tiếng Nhật và làm bài tập',
-        'Gợi ý cách sắp xếp việc hôm nay',
+        'Gợi ý cách sắp xếp công việc hiệu quả',
       ],
     },
   ]);
@@ -116,11 +116,11 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <h3 className="font-extrabold text-base leading-tight">Trợ lý hôm nay</h3>
+                <h3 className="font-extrabold text-base leading-tight">Trợ lý AI My Daily</h3>
                 <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse" />
               </div>
               <p className="text-[11px] text-white/90 font-medium">
-                Biến suy nghĩ hỗn độn thành danh sách rõ ràng
+                Sắp xếp & tối ưu ngày làm việc của bạn
               </p>
             </div>
           </div>
