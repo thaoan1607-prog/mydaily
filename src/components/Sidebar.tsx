@@ -20,6 +20,7 @@ import {
   Sparkles,
   ArrowRightLeft,
   Layers,
+  Sliders,
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -47,6 +48,7 @@ interface SidebarProps {
   onOpenAssistant: () => void;
   onOpenAuthModal: (mode?: 'login' | 'signup') => void;
   onOpenThemeModal: () => void;
+  onOpenPersonalization?: (tab?: 'avatar' | 'theme' | 'name' | 'dashboard') => void;
   tasks: Task[];
   ideasCount: number;
   isMobileOpen: boolean;
@@ -61,6 +63,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenAssistant,
   onOpenAuthModal,
   onOpenThemeModal,
+  onOpenPersonalization,
   tasks,
   ideasCount,
   isMobileOpen,
@@ -76,7 +79,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const pendingTodayCount = todayTasks.filter((t) => !t.completed).length;
   const remindersCount = tasks.filter((t) => t.reminderTime && t.reminderTime.trim().length > 0 && !t.completed).length;
 
-  // Streamlined Main Navigation Items (Requirements: Trang chủ, Công việc, Lịch, Ý tưởng, Thống kê, Cài đặt)
+  const displayName = currentUser.nickname || currentUser.name;
+
+  // Streamlined Main Navigation Items
   const mainNavItems = [
     {
       id: 'home' as ActiveTab,
@@ -122,7 +127,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
   ];
 
-  // Secondary Utilities (Focus, Reminders, Account) - easily accessible without cluttering
+  // Secondary Utilities (Focus, Reminders, Account)
   const utilityItems = [
     {
       id: 'focus' as ActiveTab,
@@ -167,7 +172,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const sidebarContent = (
     <div className="h-full flex flex-col justify-between p-3.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-r border-slate-200/80 dark:border-slate-800 transition-all select-none overflow-y-auto">
-      {/* Top Header & Brand */}
+      {/* Top Header & Brand with Immediate Avatar Reflection */}
       <div>
         <div className="flex items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-100 dark:border-slate-800/80">
           <div
@@ -179,11 +184,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
               isCollapsed ? 'justify-center w-full' : ''
             }`}
           >
+            {/* Top-Left Avatar Icon (Immediately reflects updated avatar) */}
             <div
-              className={`w-9 h-9 rounded-xl flex items-center justify-center text-white shrink-0 shadow-md bg-gradient-to-tr ${themeConfig.gradientClass}`}
+              onClick={(e) => {
+                if (onOpenPersonalization) {
+                  e.stopPropagation();
+                  onOpenPersonalization('avatar');
+                  onCloseMobile();
+                }
+              }}
+              title="Nhấn để đổi Avatar & Cá nhân hóa"
+              className={`w-9 h-9 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-md overflow-hidden relative group cursor-pointer border-2 border-white/80 dark:border-slate-700 bg-gradient-to-tr ${themeConfig.gradientClass}`}
             >
-              <CheckCircle2 className="w-5 h-5 stroke-[2.2]" />
+              {currentUser.avatar ? (
+                <img
+                  src={currentUser.avatar}
+                  alt={displayName}
+                  className="w-full h-full object-cover transition-transform group-hover:scale-115"
+                />
+              ) : (
+                <CheckCircle2 className="w-5 h-5 stroke-[2.2]" />
+              )}
+              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <span className="text-[10px]">✏️</span>
+              </div>
             </div>
+
             {!isCollapsed && (
               <div className="truncate">
                 <span className="font-black text-base tracking-tight text-slate-900 dark:text-slate-100 block leading-tight">
@@ -209,7 +235,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Unified AI Assistant Fast Action */}
-        <div className="mb-3">
+        <div className="mb-2.5">
           <button
             onClick={() => {
               onOpenAssistant();
@@ -232,6 +258,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
             )}
           </button>
         </div>
+
+        {/* Personalization Quick Button */}
+        {onOpenPersonalization && (
+          <div className="mb-3">
+            <button
+              onClick={() => {
+                onOpenPersonalization('avatar');
+                onCloseMobile();
+              }}
+              type="button"
+              title="Cá nhân hóa (Avatar, Màu sắc, Biệt danh, Tiện ích)"
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-all border border-pink-200/70 dark:border-pink-900/60 bg-pink-50/70 dark:bg-pink-950/30 text-pink-700 dark:text-pink-300 hover:bg-pink-100 dark:hover:bg-pink-900/50 ${
+                isCollapsed ? 'justify-center px-0' : ''
+              }`}
+            >
+              <Palette className="w-4 h-4 text-pink-500 shrink-0" />
+              {!isCollapsed && (
+                <div className="flex-1 flex items-center justify-between text-left">
+                  <span className="truncate">Cá nhân hóa</span>
+                  <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-pink-200/80 dark:bg-pink-800 text-pink-800 dark:text-pink-200 font-extrabold">
+                    Mới
+                  </span>
+                </div>
+              )}
+            </button>
+          </div>
+        )}
 
         {/* Main Streamlined Navigation List */}
         <div className="space-y-1">
@@ -354,7 +407,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* Bottom User Profile & Theme Quick Access */}
+      {/* Bottom User Profile Card */}
       <div className="pt-3 mt-4 border-t border-slate-100 dark:border-slate-800/80 space-y-2">
         {/* User Card */}
         <div
@@ -363,22 +416,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
           }`}
         >
           <div className="flex items-center gap-2">
-            {currentUser.avatar ? (
-              <img
-                src={currentUser.avatar}
-                alt={currentUser.name}
-                className="w-7 h-7 rounded-full object-cover shrink-0 border border-slate-200 shadow-2xs"
-              />
-            ) : (
-              <div className="w-7 h-7 rounded-full bg-pink-100 dark:bg-pink-900/60 text-pink-600 dark:text-pink-300 flex items-center justify-center text-xs font-bold shrink-0">
-                {currentUser.name.charAt(0).toUpperCase()}
-              </div>
-            )}
+            <div
+              onClick={() => onOpenPersonalization?.('avatar')}
+              className="cursor-pointer relative group shrink-0"
+              title="Bấm để đổi avatar"
+            >
+              {currentUser.avatar ? (
+                <img
+                  src={currentUser.avatar}
+                  alt={displayName}
+                  className="w-8 h-8 rounded-full object-cover border border-pink-400 shadow-2xs"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-pink-100 dark:bg-pink-900/60 text-pink-600 dark:text-pink-300 flex items-center justify-center text-xs font-bold">
+                  {displayName.charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
 
             {!isCollapsed && (
               <div className="flex-1 min-w-0">
                 <div className="font-bold text-xs text-slate-900 dark:text-slate-100 truncate">
-                  {currentUser.name}
+                  {displayName}
                 </div>
                 <div className="flex items-center gap-1 mt-0.5">
                   <span

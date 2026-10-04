@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Bell, BellOff, Sparkles, BarChart3, Palette, Menu, Hourglass, User as UserIcon, CheckCircle2, ChevronRight } from 'lucide-react';
+import { Calendar, Bell, BellOff, Sparkles, BarChart3, Palette, Menu, Hourglass, User as UserIcon, CheckCircle2, ChevronRight, Sliders } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -14,6 +14,7 @@ interface HeaderProps {
   onOpenTimer: () => void;
   onOpenMobileMenu: () => void;
   onOpenAuthModal?: () => void;
+  onOpenPersonalization?: (tab?: 'avatar' | 'theme' | 'name' | 'dashboard') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -27,6 +28,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenTimer,
   onOpenMobileMenu,
   onOpenAuthModal,
+  onOpenPersonalization,
 }) => {
   const { themeConfig } = useTheme();
   const { currentUser, isGuest, isAdmin } = useAuth();
@@ -38,6 +40,7 @@ export const Header: React.FC<HeaderProps> = ({
   const dateStr = `${dayName}, ${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
 
   const percent = totalTodayCount > 0 ? Math.round((completedCount / totalTodayCount) * 100) : 0;
+  const userGreetingName = currentUser.nickname || currentUser.name;
 
   return (
     <header className="sticky top-0 z-30 backdrop-blur-md bg-white/90 dark:bg-slate-900/90 border-b border-slate-200/80 dark:border-slate-800 shadow-2xs transition-colors">
@@ -60,7 +63,7 @@ export const Header: React.FC<HeaderProps> = ({
       )}
 
       <div className="max-w-6xl mx-auto px-3 sm:px-6 h-15 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
-        {/* Left: Mobile menu toggle + Brand Logo & Title */}
+        {/* Left: Mobile menu toggle + Brand Logo & Avatar & Title */}
         <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={onOpenMobileMenu}
@@ -72,9 +75,23 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           <div className="flex items-center gap-2.5">
-            <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm bg-gradient-to-tr ${themeConfig.gradientClass}`}>
-              <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.2]" />
+            {/* Top-Left Avatar / Brand Badge */}
+            <div
+              onClick={() => onOpenPersonalization?.('avatar')}
+              title="Nhấn để đổi ảnh đại diện & cá nhân hóa"
+              className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm overflow-hidden cursor-pointer group relative border border-white/60 dark:border-slate-700 bg-gradient-to-tr ${themeConfig.gradientClass}`}
+            >
+              {currentUser.avatar ? (
+                <img
+                  src={currentUser.avatar}
+                  alt={userGreetingName}
+                  className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                />
+              ) : (
+                <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.2]" />
+              )}
             </div>
+
             <div>
               <div className="flex items-center gap-1.5">
                 <h1 className="font-black text-base sm:text-lg tracking-tight text-slate-900 dark:text-slate-50 leading-none">
@@ -112,19 +129,25 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
 
-            {/* Theme & Pastel Palette */}
+            {/* Theme & Pastel Palette & Personalization */}
             <div className="relative group">
               <button
-                onClick={onOpenThemeModal}
+                onClick={() => {
+                  if (onOpenPersonalization) {
+                    onOpenPersonalization('theme');
+                  } else {
+                    onOpenThemeModal();
+                  }
+                }}
                 type="button"
                 className="p-1.5 sm:p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 transition-all flex items-center gap-1"
-                aria-label="Bảng màu sắc"
+                aria-label="Tùy biến giao diện"
               >
                 <Palette className="w-4 h-4 text-purple-500" />
                 <span className="w-2 h-2 rounded-full hidden sm:inline-block" style={{ backgroundColor: themeConfig.previewHex }} />
               </button>
               <div className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white text-[10px] font-semibold px-2 py-0.5 rounded-md whitespace-nowrap shadow-md z-50">
-                Màu sắc Pastel & Giao diện
+                Cá nhân hóa & 5 Màu Pastel ({themeConfig.name})
               </div>
             </div>
 
@@ -171,41 +194,47 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* User Account / Avatar button */}
-          {onOpenAuthModal && (
-            <div className="relative group">
-              <button
-                onClick={onOpenAuthModal}
-                type="button"
-                className="p-1 sm:px-2 sm:py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all bg-slate-100/90 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700"
-              >
-                {currentUser.avatar ? (
-                  <img
-                    src={currentUser.avatar}
-                    alt={currentUser.name}
-                    className="w-5 h-5 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-5 h-5 rounded-full bg-pink-500 text-white flex items-center justify-center text-[10px] font-bold">
-                    {currentUser.name.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <span className="hidden lg:inline max-w-[75px] truncate text-[11px]">{currentUser.name}</span>
-                {isGuest && (
-                  <span className="text-[9px] px-1 py-0.2 rounded-sm bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-200 font-bold hidden sm:inline">
-                    Khách
-                  </span>
-                )}
-                {isAdmin && (
-                  <span className="text-[9px] px-1 py-0.2 rounded-sm bg-rose-500 text-white font-bold hidden sm:inline">
-                    Admin
-                  </span>
-                )}
-              </button>
-              <div className="pointer-events-none absolute -bottom-8 right-0 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white text-[10px] font-semibold px-2 py-0.5 rounded-md whitespace-nowrap shadow-md z-50">
-                Tài khoản ({currentUser.name})
-              </div>
+          <div className="relative group">
+            <button
+              onClick={() => {
+                if (onOpenPersonalization) {
+                  onOpenPersonalization('avatar');
+                } else if (onOpenAuthModal) {
+                  onOpenAuthModal();
+                }
+              }}
+              type="button"
+              className="p-1 sm:px-2 sm:py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all bg-slate-100/90 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700"
+            >
+              {currentUser.avatar ? (
+                <img
+                  src={currentUser.avatar}
+                  alt={userGreetingName}
+                  className="w-5 h-5 rounded-full object-cover border border-pink-400"
+                />
+              ) : (
+                <div className="w-5 h-5 rounded-full bg-pink-500 text-white flex items-center justify-center text-[10px] font-bold">
+                  {userGreetingName.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <span className="hidden lg:inline max-w-[75px] truncate text-[11px]">
+                {userGreetingName}
+              </span>
+              {isGuest && (
+                <span className="text-[9px] px-1 py-0.2 rounded-sm bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-200 font-bold hidden sm:inline">
+                  Khách
+                </span>
+              )}
+              {isAdmin && (
+                <span className="text-[9px] px-1 py-0.2 rounded-sm bg-rose-500 text-white font-bold hidden sm:inline">
+                  Admin
+                </span>
+              )}
+            </button>
+            <div className="pointer-events-none absolute -bottom-8 right-0 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white text-[10px] font-semibold px-2 py-0.5 rounded-md whitespace-nowrap shadow-md z-50">
+              Hồ sơ: {userGreetingName} (Bấm để đổi avatar)
             </div>
-          )}
+          </div>
 
           {/* Unified AI Assistant Button */}
           <div className="relative group">

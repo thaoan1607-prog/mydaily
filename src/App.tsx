@@ -13,6 +13,7 @@ import { EditTaskModal } from './components/EditTaskModal';
 import { AssistantDrawer } from './components/AssistantDrawer';
 import { ThemeSelectorModal } from './components/ThemeSelectorModal';
 import { AuthModal } from './components/AuthModal';
+import { PersonalizationModal } from './components/PersonalizationModal';
 
 // Specialized Views
 import { TasksListView } from './components/TasksListView';
@@ -48,11 +49,46 @@ import {
   AlertTriangle,
   ArrowRight,
   ShieldAlert,
+  Bot,
+  Sliders,
 } from 'lucide-react';
+import { DashboardWidgetSetting } from './types/todo';
 
 const STORAGE_KEY = 'today_todo_tasks_v3';
 const IDEAS_STORAGE_KEY = 'today_todo_ideas_v3';
 const SIDEBAR_COLLAPSED_KEY = 'today_sidebar_collapsed';
+const DASHBOARD_WIDGETS_STORAGE_KEY = 'my_daily_dashboard_widgets';
+
+const DEFAULT_DASHBOARD_WIDGETS: DashboardWidgetSetting[] = [
+  {
+    id: 'progress',
+    label: 'Tiến độ công việc',
+    description: 'Thanh tiến độ % hoàn thành việc trong ngày',
+    icon: '📊',
+    enabled: true,
+  },
+  {
+    id: 'countdown',
+    label: 'Đồng hồ đếm ngược Pomodoro',
+    description: 'Hỗ trợ đếm ngược tập trung 25 phút',
+    icon: '⏱️',
+    enabled: true,
+  },
+  {
+    id: 'quickAdd',
+    label: 'Góc nhập nhanh công việc & ý tưởng',
+    description: 'Ô nhập và tự động phân loại nhiệm vụ',
+    icon: '✍️',
+    enabled: true,
+  },
+  {
+    id: 'aiAssistant',
+    label: 'Khung Trợ lý AI My Daily',
+    description: 'Gợi ý sắp xếp ngày làm việc thông minh',
+    icon: '🤖',
+    enabled: true,
+  },
+];
 
 export default function App() {
   const { themeConfig } = useTheme();
@@ -116,6 +152,33 @@ export default function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('login');
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+
+  // Personalization & Dashboard Customization state
+  const [dashboardWidgets, setDashboardWidgets] = useState<DashboardWidgetSetting[]>(() => {
+    try {
+      const saved = localStorage.getItem(DASHBOARD_WIDGETS_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.warn('Failed to load dashboard widgets', e);
+    }
+    return DEFAULT_DASHBOARD_WIDGETS;
+  });
+
+  const handleUpdateDashboardWidgets = (widgets: DashboardWidgetSetting[]) => {
+    setDashboardWidgets(widgets);
+    localStorage.setItem(DASHBOARD_WIDGETS_STORAGE_KEY, JSON.stringify(widgets));
+  };
+
+  const [isPersonalizationOpen, setIsPersonalizationOpen] = useState(false);
+  const [personalizationTab, setPersonalizationTab] = useState<'avatar' | 'theme' | 'name' | 'dashboard'>('avatar');
+
+  const handleOpenPersonalization = (tab: 'avatar' | 'theme' | 'name' | 'dashboard' = 'avatar') => {
+    setPersonalizationTab(tab);
+    setIsPersonalizationOpen(true);
+  };
 
   // Notifications
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
@@ -424,6 +487,7 @@ export default function App() {
         onOpenAssistant={() => setIsAssistantOpen(true)}
         onOpenAuthModal={handleOpenAuth}
         onOpenThemeModal={() => setIsThemeModalOpen(true)}
+        onOpenPersonalization={handleOpenPersonalization}
         tasks={tasks}
         ideasCount={ideas.length}
         isMobileOpen={isMobileMenuOpen}
@@ -441,6 +505,7 @@ export default function App() {
           onOpenSummary={() => setIsSummaryOpen(true)}
           onOpenAssistant={() => setIsAssistantOpen(true)}
           onOpenThemeModal={() => setIsThemeModalOpen(true)}
+          onOpenPersonalization={handleOpenPersonalization}
           onOpenTimer={() => setShowCountdownTimer(!showCountdownTimer)}
           onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
           onOpenAuthModal={() => handleOpenAuth('login')}
@@ -469,46 +534,101 @@ export default function App() {
           {/* RENDER VIEW ACCORDING TO activeTab */}
           {activeTab === 'home' && (
             <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-200">
-              {/* App Welcome & Intro (Requirement 3) */}
+              {/* App Welcome & Intro (Requirement 3: Nickname & Motivational Quote) */}
               <div className="text-center max-w-2xl mx-auto space-y-2">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-50 dark:bg-pink-950/40 border border-pink-200 dark:border-pink-800 text-xs font-semibold text-pink-700 dark:text-pink-300">
                   <span>{themeConfig.emoji}</span>
-                  <span>Giao diện màu Pastel: {themeConfig.name}</span>
+                  <span>{themeConfig.name} - {themeConfig.subtitle}</span>
+                  <button
+                    onClick={() => handleOpenPersonalization('theme')}
+                    className="text-[10px] text-pink-600 dark:text-pink-400 font-bold underline ml-1 cursor-pointer"
+                  >
+                    Đổi màu
+                  </button>
                 </div>
                 <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-slate-50 tracking-tight">
-                  Chào bạn! Hôm nay bạn muốn làm gì?
+                  Chào {currentUser.nickname || currentUser.name || 'bạn'}! Hôm nay bạn muốn làm gì?
                 </h2>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-semibold">
-                  “Có việc gì nghĩ ra thì ghi ngay – AI giúp bạn nhớ và sắp xếp.”
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-semibold italic">
+                  {currentUser.motivationalQuote || '“Có việc gì nghĩ ra thì ghi ngay – AI giúp bạn nhớ và sắp xếp.”'}
                 </p>
               </div>
 
-              {/* Progress Bar */}
-              <ProgressBar completedCount={completedCount} totalCount={totalTodayCount} />
+              {/* Dynamic Customizable Dashboard Widgets (Requirement 4: On/Off & Reorder) */}
+              {dashboardWidgets
+                .filter((w) => w.enabled)
+                .map((widget) => {
+                  if (widget.id === 'progress') {
+                    return (
+                      <div key="progress" className="animate-in fade-in duration-300">
+                        <ProgressBar completedCount={completedCount} totalCount={totalTodayCount} />
+                      </div>
+                    );
+                  }
+                  if (widget.id === 'countdown') {
+                    return (
+                      <div key="countdown" className="space-y-2 animate-in fade-in duration-300">
+                        <div className="flex items-center justify-between px-1">
+                          <button
+                            type="button"
+                            onClick={() => setShowCountdownTimer(!showCountdownTimer)}
+                            className="text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-pink-600 dark:hover:text-pink-400 flex items-center gap-1.5 transition-colors"
+                          >
+                            <Hourglass className="w-3.5 h-3.5 text-pink-500" />
+                            <span>{showCountdownTimer ? 'Ẩn đồng hồ đếm ngược' : 'Mở đồng hồ đếm ngược Pomodoro'}</span>
+                            {showCountdownTimer ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                          </button>
+                        </div>
 
-              {/* Countdown Timer Widget (Collapsible / Expandable) */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between px-1">
-                  <button
-                    type="button"
-                    onClick={() => setShowCountdownTimer(!showCountdownTimer)}
-                    className="text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-pink-600 dark:hover:text-pink-400 flex items-center gap-1.5 transition-colors"
-                  >
-                    <Hourglass className="w-3.5 h-3.5 text-pink-500" />
-                    <span>{showCountdownTimer ? 'Ẩn đồng hồ đếm ngược' : 'Mở đồng hồ đếm ngược Pomodoro'}</span>
-                    {showCountdownTimer ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                  </button>
-                </div>
-
-                {showCountdownTimer && (
-                  <div className="animate-in fade-in duration-300">
-                    <CountdownTimer tasks={tasks} onTaskCompleted={handleToggleComplete} />
-                  </div>
-                )}
-              </div>
-
-              {/* Quick Add Box ("Hôm nay bạn cần làm gì?") */}
-              <QuickAddBox onAddTasks={handleAddTasks} existingTasks={tasks} />
+                        {showCountdownTimer && (
+                          <div className="animate-in fade-in duration-300">
+                            <CountdownTimer tasks={tasks} onTaskCompleted={handleToggleComplete} />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+                  if (widget.id === 'quickAdd') {
+                    return (
+                      <div key="quickAdd" className="animate-in fade-in duration-300">
+                        <QuickAddBox onAddTasks={handleAddTasks} existingTasks={tasks} />
+                      </div>
+                    );
+                  }
+                  if (widget.id === 'aiAssistant') {
+                    return (
+                      <div
+                        key="aiAssistant"
+                        className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-amber-500/10 border border-purple-200/80 dark:border-purple-900/60 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3.5 animate-in fade-in duration-300"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-sm bg-gradient-to-tr ${themeConfig.gradientClass}`}>
+                            <Sparkles className="w-5 h-5 text-amber-200" />
+                          </div>
+                          <div>
+                            <div className="font-extrabold text-sm text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                              <span>Trợ lý AI My Daily</span>
+                              <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300">
+                                AI Assistant
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+                              Chia sẻ mọi suy nghĩ hay việc cần làm, AI sẽ tự động phân loại và ước tính thời gian giúp bạn.
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setIsAssistantOpen(true)}
+                          className={`px-4 py-2 rounded-xl text-xs font-bold text-white shadow-xs shrink-0 flex items-center gap-1.5 transition-all bg-gradient-to-r ${themeConfig.gradientClass}`}
+                        >
+                          <Bot className="w-4 h-4" />
+                          <span>Hỏi Trợ lý AI</span>
+                        </button>
+                      </div>
+                    );
+                  }
+                  return null;
+                })}
 
               {/* View Mode Bar */}
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/90 dark:border-slate-800 pb-3">
@@ -538,14 +658,25 @@ export default function App() {
                   </button>
                 </div>
 
-                <button
-                  onClick={handleResetSampleData}
-                  title="Khôi phục danh sách mẫu từ đề bài"
-                  className="text-[11px] text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 flex items-center gap-1 transition-colors px-2 py-1 rounded-lg"
-                >
-                  <RefreshCw className="w-3 h-3" />
-                  <span className="hidden sm:inline">Tải lại mẫu ban đầu</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleOpenPersonalization('dashboard')}
+                    title="Tùy chỉnh bật/tắt & sắp xếp widget trang chủ"
+                    className="text-[11px] text-pink-600 dark:text-pink-400 hover:text-pink-700 flex items-center gap-1 transition-colors px-2.5 py-1 rounded-xl bg-pink-50 dark:bg-pink-950/40 border border-pink-200/80 dark:border-pink-800/60 font-semibold"
+                  >
+                    <Sliders className="w-3.5 h-3.5" />
+                    <span>Tùy biến Widget ({dashboardWidgets.filter((w) => w.enabled).length}/4)</span>
+                  </button>
+
+                  <button
+                    onClick={handleResetSampleData}
+                    title="Khôi phục danh sách mẫu từ đề bài"
+                    className="text-[11px] text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 flex items-center gap-1 transition-colors px-2 py-1 rounded-lg"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    <span className="hidden sm:inline">Tải lại mẫu ban đầu</span>
+                  </button>
+                </div>
               </div>
 
               {/* Priority List or Time-Blocking Schedule */}
@@ -645,7 +776,7 @@ export default function App() {
           {/* VIEW: Settings */}
           {activeTab === 'settings' && (
             <div className="animate-in fade-in duration-200">
-              <SettingsView />
+              <SettingsView onOpenDashboardCustomizer={() => handleOpenPersonalization('dashboard')} />
             </div>
           )}
 
@@ -839,6 +970,15 @@ export default function App() {
       <ThemeSelectorModal
         isOpen={isThemeModalOpen}
         onClose={() => setIsThemeModalOpen(false)}
+        onOpenFullPersonalization={() => handleOpenPersonalization('theme')}
+      />
+
+      <PersonalizationModal
+        isOpen={isPersonalizationOpen}
+        onClose={() => setIsPersonalizationOpen(false)}
+        dashboardWidgets={dashboardWidgets}
+        onUpdateDashboardWidgets={handleUpdateDashboardWidgets}
+        initialTab={personalizationTab}
       />
 
       <AuthModal

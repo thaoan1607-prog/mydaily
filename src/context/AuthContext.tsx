@@ -15,7 +15,7 @@ interface AuthContextType {
   quickLogin: (role: 'guest' | 'user' | 'admin') => void;
   forgotPassword: (email: string) => Promise<{ success: boolean; message: string }>;
   changePassword: (newPass: string) => boolean;
-  updateProfile: (data: { name: string; avatar?: string }) => void;
+  updateProfile: (data: { name?: string; nickname?: string; avatar?: string; motivationalQuote?: string }) => void;
   updateSettings: (newSettings: Partial<UserSettings>) => void;
   // Admin functions
   adminToggleUserLock: (userId: string) => void;
@@ -28,8 +28,10 @@ interface AuthContextType {
 const GUEST_USER: User = {
   id: 'guest',
   name: 'Khách trải nghiệm',
-  email: 'guest@todaytodo.com',
-  avatar: '',
+  nickname: 'Bạn',
+  email: 'guest@mydaily.app',
+  avatar: 'data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%25%22%20y1%3D%220%25%22%20x2%3D%22100%25%22%20y2%3D%22100%25%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23fbcfe8%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23f472b6%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20rx%3D%2235%22%20fill%3D%22url(%23g)%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2254%25%22%20font-size%3D%2252%22%20dominant-baseline%3D%22central%22%20text-anchor%3D%22middle%22%3E%F0%9F%8C%B8%3C%2Ftext%3E%3C%2Fsvg%3E',
+  motivationalQuote: '“Có việc gì nghĩ ra thì ghi ngay – AI giúp bạn nhớ và sắp xếp.”',
   role: 'guest',
   createdAt: '2026-09-01T00:00:00Z',
   lastActive: new Date().toISOString(),
@@ -261,11 +263,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return true;
   };
 
-  const updateProfile = (data: { name: string; avatar?: string }) => {
-    const updated = {
+  const updateProfile = (data: {
+    name?: string;
+    nickname?: string;
+    avatar?: string;
+    motivationalQuote?: string;
+  }) => {
+    const updated: User = {
       ...currentUser,
-      name: data.name.trim() || currentUser.name,
-      avatar: data.avatar ?? currentUser.avatar,
+      name: data.name !== undefined ? (data.name.trim() || currentUser.name) : currentUser.name,
+      nickname: data.nickname !== undefined ? data.nickname.trim() : (currentUser.nickname || ''),
+      avatar: data.avatar !== undefined ? data.avatar : currentUser.avatar,
+      motivationalQuote:
+        data.motivationalQuote !== undefined
+          ? data.motivationalQuote.trim()
+          : (currentUser.motivationalQuote || ''),
     };
     setCurrentUser(updated);
     setUsers((prev) => prev.map((u) => (u.id === currentUser.id ? updated : u)));

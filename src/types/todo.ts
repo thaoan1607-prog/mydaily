@@ -7,12 +7,24 @@ export type UserRole = 'guest' | 'user' | 'admin';
 export interface User {
   id: string;
   name: string;
+  nickname?: string;
   email: string;
   avatar?: string;
+  motivationalQuote?: string;
   role: UserRole;
   isLocked?: boolean;
   createdAt: string;
   lastActive?: string;
+}
+
+export type DashboardWidgetId = 'progress' | 'countdown' | 'quickAdd' | 'aiAssistant';
+
+export interface DashboardWidgetSetting {
+  id: DashboardWidgetId;
+  label: string;
+  description: string;
+  icon: string;
+  enabled: boolean;
 }
 
 export interface Subtask {
